@@ -2,212 +2,116 @@
 <html>
 <head>
 <title>Task Manager</title>
-
 <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #f4f6f9;
-}
-
-/* HEADER */
-.header {
-    background: #2c3e50;
-    color: white;
-    padding: 15px;
-    font-size: 22px;
-    text-align: center;
-}
-
-/* CONTAINER */
-.container {
-    width: 80%;
-    margin: auto;
-    margin-top: 20px;
-}
-
-/* CARD */
-.card {
-    background: white;
-    padding: 20px;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-}
-
-/* INPUT */
-input {
-    padding: 8px;
-    margin: 5px;
-    width: 180px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-}
-
-/* BUTTON */
-button {
-    padding: 8px 12px;
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-button:hover {
-    background: #2980b9;
-}
-
-/* TASK COLORS */
-.done {
-    color: green;
-    font-weight: bold;
-}
-.pending {
-    color: red;
-    font-weight: bold;
-}
-
-/* DASHBOARD BOX */
-.dashboard-box {
-    background: #ecf0f1;
-    padding: 15px;
-    border-radius: 8px;
-}
+body { font-family: Arial; background:#f4f6f9; }
+.card { background:white; padding:20px; margin:20px; border-radius:10px; }
+button { background:#3498db; color:white; padding:8px; border:none; }
+input { padding:6px; margin:5px; }
 </style>
 </head>
 
 <body>
 
-<div class="header">Task Manager Dashboard</div>
-
-<div class="container">
+<h2 style="text-align:center;">Task Manager Dashboard</h2>
 
 <div class="card">
 <h3>Signup</h3>
-<input id="su_user" placeholder="Username">
-<input id="su_pass" placeholder="Password">
-<input id="su_role" placeholder="Role (admin/member)">
+<input id="su_u" placeholder="Username">
+<input id="su_p" placeholder="Password">
+<input id="su_r" placeholder="Role">
 <button onclick="signup()">Signup</button>
 </div>
 
 <div class="card">
 <h3>Login</h3>
-<input id="li_user" placeholder="Username">
-<input id="li_pass" placeholder="Password">
+<input id="li_u" placeholder="Username">
+<input id="li_p" placeholder="Password">
 <button onclick="login()">Login</button>
 </div>
 
 <div class="card">
 <h3>Create Project</h3>
-<input id="project" placeholder="Project name">
-<input id="proj_user" placeholder="User ID">
+<input id="p_name" placeholder="Project name">
+<input id="p_admin" placeholder="Admin ID">
 <button onclick="createProject()">Create</button>
 </div>
 
 <div class="card">
 <h3>Create Task</h3>
-<input id="title" placeholder="Task title">
-<input id="user_id" placeholder="Assign user ID">
-<input id="project_id" placeholder="Project ID">
-<input id="created_by" placeholder="Admin ID">
-<button onclick="createTask()">Create Task</button>
-</div>
-
-<div class="card">
-<h3>Update Task</h3>
-<input id="ut_id" placeholder="Task ID">
-<input id="ut_status" placeholder="done/pending">
-<input id="ut_user" placeholder="User ID">
-<button onclick="updateTask()">Update</button>
-</div>
-
-<div class="card">
-<h3>Delete Task</h3>
-<input id="del_id" placeholder="Task ID">
-<button onclick="deleteTask()">Delete</button>
+<input id="t_title" placeholder="Title">
+<input id="t_user" placeholder="User ID">
+<input id="t_project" placeholder="Project ID">
+<input id="t_admin" placeholder="Admin ID">
+<button onclick="createTask()">Create</button>
 </div>
 
 <div class="card">
 <h3>Dashboard</h3>
-<button onclick="loadDashboard()">Load Dashboard</button>
-<div id="dashboard" class="dashboard-box"></div>
+<button onclick="loadDashboard()">Load</button>
+<div id="dashboard"></div>
 </div>
 
 <div class="card">
-<h3>Project Team</h3>
-<input id="team_project" placeholder="Project ID">
-<button onclick="loadTeam()">Load Team</button>
+<h3>Team</h3>
+<input id="team_id">
+<button onclick="loadTeam()">Load</button>
 <div id="team"></div>
 </div>
 
 <div class="card">
 <h3>Tasks</h3>
-<button onclick="getTasks()">Load Tasks</button>
-<ul id="tasks"></ul>
-</div>
-
+<button onclick="loadTasks()">Load</button>
+<div id="tasks"></div>
 </div>
 
 <script>
-const base = "http://127.0.0.1:8000";
 
-async function signup() {
-    await fetch(`${base}/signup?username=${su_user.value}&password=${su_pass.value}&role=${su_role.value}`, {method:"POST"});
-    alert("User created");
+const API = "https://task-manager-production-fb8e.up.railway.app";
+
+async function signup(){
+    let res = await fetch(`${API}/signup?username=${su_u.value}&password=${su_p.value}&role=${su_r.value}`,{method:"POST"});
+    alert(JSON.stringify(await res.json()));
 }
 
-async function login() {
-    let res = await fetch(`${base}/login?username=${li_user.value}&password=${li_pass.value}`, {method:"POST"});
+async function login(){
+    let res = await fetch(`${API}/login?username=${li_u.value}&password=${li_p.value}`,{method:"POST"});
+    alert(JSON.stringify(await res.json()));
+}
+
+async function createProject(){
+    let res = await fetch(`${API}/project?name=${p_name.value}&admin_id=${p_admin.value}`,{method:"POST"});
+    alert(JSON.stringify(await res.json()));
+}
+
+async function createTask(){
+    let res = await fetch(`${API}/task?title=${t_title.value}&user_id=${t_user.value}&project_id=${t_project.value}&admin_id=${t_admin.value}`,{method:"POST"});
+    alert(JSON.stringify(await res.json()));
+}
+
+async function loadDashboard(){
+    let res = await fetch(`${API}/dashboard`);
     let d = await res.json();
-    alert("User ID: " + d.user_id);
+    dashboard.innerHTML = `Total: ${d.total_tasks}<br>Done: ${d.completed_tasks}<br>Pending: ${d.pending_tasks}`;
 }
 
-async function createProject() {
-    await fetch(`${base}/project?name=${project.value}&user_id=${proj_user.value}`, {method:"POST"});
+async function loadTeam(){
+    let res = await fetch(`${API}/project/${team_id.value}/team`);
+    let d = await res.json();
+    team.innerHTML = d.team_members.join(", ");
 }
 
-async function createTask() {
-    await fetch(`${base}/task?title=${title.value}&user_id=${user_id.value}&project_id=${project_id.value}&created_by=${created_by.value}`, {method:"POST"});
-}
-
-async function updateTask() {
-    await fetch(`${base}/task/${ut_id.value}?status=${ut_status.value}&user_id=${ut_user.value}`, {method:"PUT"});
-}
-
-async function deleteTask() {
-    await fetch(`${base}/task/${del_id.value}`, {method:"DELETE"});
-}
-
-async function getTasks() {
-    let res = await fetch(`${base}/tasks`);
+async function loadTasks(){
+    let res = await fetch(`${API}/tasks`);
     let data = await res.json();
 
-    tasks.innerHTML = "";
-    data.forEach(t => {
-        let cls = t.status === "done" ? "done" : "pending";
-        tasks.innerHTML += `<li class="${cls}">
-        ${t.title} → ${t.status} (${t.project}) [${t.user}]
-        </li>`;
+    let html = "";
+    data.forEach(t=>{
+        html += `<p>${t.title} (Project ${t.project_id})</p>`;
     });
+
+    tasks.innerHTML = html;
 }
 
-async function loadDashboard() {
-    let res = await fetch(`${base}/dashboard`);
-    let d = await res.json();
-
-    dashboard.innerHTML = `
-        <b>Total:</b> ${d.total_tasks} <br>
-        <b>Done:</b> ${d.completed_tasks} <br>
-        <b>Pending:</b> ${d.pending_tasks}
-    `;
-}
-
-async function loadTeam() {
-    let res = await fetch(`${base}/project/${team_project.value}/team`);
-    let d = await res.json();
-
-    team.innerHTML = "<b>Members:</b> " + d.team_members.join(", ");
-}
 </script>
 
 </body>
