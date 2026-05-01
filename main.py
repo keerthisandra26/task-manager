@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-# ✅ CORS FIX (IMPORTANT)
+# Allow frontend (Netlify)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -12,12 +12,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Dummy in-memory storage (for simplicity)
 users = []
 projects = []
 tasks = []
 
-# ================= SIGNUP =================
+# ---------------- USER ----------------
+
 @app.post("/signup")
 def signup(username: str, password: str, role: str):
     user_id = len(users) + 1
@@ -27,17 +27,26 @@ def signup(username: str, password: str, role: str):
         "password": password,
         "role": role
     })
-    return {"message": "User created", "user_id": user_id}
+    return {"user_id": user_id, "role": role}
 
-# ================= LOGIN =================
+
 @app.post("/login")
 def login(username: str, password: str):
     for u in users:
         if u["username"] == username and u["password"] == password:
             return {"user_id": u["id"], "role": u["role"]}
-    raise HTTPException(status_code=401, detail="Invalid credentials")
+    raise HTTPException(status_code=400, detail="Invalid credentials")
 
-# ================= CREATE PROJECT =================
+
+@app.delete("/user/{user_id}")
+def delete_user(user_id: int):
+    global users
+    users = [u for u in users if u["id"] != user_id]
+    return {"message": "User deleted"}
+
+
+# ---------------- PROJECT ----------------
+
 @app.post("/project")
 def create_project(name: str, admin_id: int):
     project_id = len(projects) + 1
@@ -48,25 +57,45 @@ def create_project(name: str, admin_id: int):
     })
     return {"project_id": project_id}
 
-# ================= CREATE TASK =================
+
+# ---------------- TASK ----------------
+
 @app.post("/task")
 def create_task(title: str, user_id: int, project_id: int, admin_id: int):
     task_id = len(tasks) + 1
     tasks.append({
         "id": task_id,
         "title": title,
-        "status": "pending",
         "user_id": user_id,
-        "project_id": project_id
+        "project_id": project_id,
+        "status": "pending"
     })
     return {"task_id": task_id}
 
-# ================= GET TASKS =================
+
+@app.put("/task/{task_id}")
+def update_task(task_id: int, status: str):
+    for t in tasks:
+        if t["id"] == task_id:
+            t["status"] = status
+            return {"message": "Task updated"}
+    raise HTTPException(status_code=404, detail="Task not found")
+
+
+@app.delete("/task/{task_id}")
+def delete_task(task_id: int):
+    global tasks
+    tasks = [t for t in tasks if t["id"] != task_id]
+    return {"message": "Task deleted"}
+
+
 @app.get("/tasks")
 def get_tasks():
     return tasks
 
-# ================= DASHBOARD =================
+
+# ---------------- DASHBOARD ----------------
+
 @app.get("/dashboard")
 def dashboard():
     total = len(tasks)
@@ -79,15 +108,16 @@ def dashboard():
         "pending_tasks": pending
     }
 
-# ================= TEAM =================
+
+# ---------------- TEAM ----------------
+
 @app.get("/project/{project_id}/team")
 def team(project_id: int):
-    members = set()
-    for t in tasks:
-        if t["project_id"] == project_id:
-            members.add(f"user{t['user_id']}")
+    member_ids = [t["user_id"] for t in tasks if t["project_id"] == project_id]
 
-    return {
-        "project_id": project_id,
-        "team_members": list(members)
-    }
+    names = []
+    for u in users:
+        if u["id"] in member_ids:
+            names.append(u["username"])
+
+    return {"team_members": names}
